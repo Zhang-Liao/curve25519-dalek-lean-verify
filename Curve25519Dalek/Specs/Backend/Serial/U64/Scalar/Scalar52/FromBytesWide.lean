@@ -39,6 +39,9 @@ natural language specs:
 theorem from_bytes_wide_spec (b : Array U8 64#usize) :
     ∃ u, from_bytes_wide b = ok u ∧
     Scalar52_as_Nat u = U8x64_as_Nat b % L := by
+    unfold from_bytes_wide
+    progress*
+
     sorry
 
 end curve25519_dalek.backend.serial.u64.scalar.Scalar52
