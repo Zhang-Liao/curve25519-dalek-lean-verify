@@ -6,6 +6,7 @@ Authors: Markus Dablander
 import Curve25519Dalek.Funs
 import Curve25519Dalek.Defs
 import Mathlib.Data.Nat.ModEq
+import Curve25519Dalek.Specs.Backend.Serial.U64.Scalar.Scalar52.Sub
 /-! # Spec Theorem for `Scalar52::add`
 
 Specification and proof for `Scalar52::add`.
@@ -37,7 +38,9 @@ natural language specs:
 - The result represents the sum of the two input scalars modulo L
 -/
 @[progress]
-theorem add_spec (u u' : Scalar52) :
+theorem add_spec (u u' : Scalar52)
+    (hu : ∀ i, i < 5 → (u[i]!).val < 2 ^ 52)
+    (hu' : ∀ i, i < 5 → (u'[i]!).val < 2 ^ 52):
     ∃ v,
     add u u' = ok v ∧
     Scalar52_as_Nat v = (Scalar52_as_Nat u + Scalar52_as_Nat u') % L
@@ -54,7 +57,15 @@ theorem add_spec (u u' : Scalar52) :
   have h_sub : ∃ v,
     sub sum constants.L = ok v
     ∧ Scalar52_as_Nat v = (Scalar52_as_Nat sum - Scalar52_as_Nat constants.L) % L := by
-    sorry
+      have h_sum_bounds : ∀ i < 5, (sum[i]!).val < 2 ^ 52 := by
+        -- 这应该从 add_loop 的规范中得出
+        sorry  -- 需要 add_loop_spec 提供这个性质
+      -- 证明 constants.L 的界限（应该是常数，可以用 decide）
+      have h_L_bounds : ∀ i < 5, (constants.L[i]!).val < 2 ^ 52 := by
+        unfold constants.L
+        decide  -- 或者需要显式检查每个 limb
+      -- 应用 sub_spec
+      exact sub_spec sum constants.L h_sum_bounds h_L_bounds
   obtain ⟨v, h_v_ok, h_v_mod⟩ := h_sub
   use v
   constructor
